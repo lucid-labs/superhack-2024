@@ -1,4 +1,3 @@
-// components/Chatbot.tsx
 "use client";
 
 import { useWallet } from "@/context/ThirdwebContext";
@@ -110,9 +109,10 @@ const Chatbot: React.FC = () => {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`my-2 p-2 rounded shadow-sm ${
+                className={`my-2 p-2 rounded shadow-sm
+                ${
                   message.user === "user"
-                    ? "bg-gray-200 text-gray-900 text-right"
+                    ? "bg-gray-200 text-gray-900 text-right w-auto"
                     : "bg-gray-300 text-left"
                 }`}
               >
@@ -139,7 +139,11 @@ const Chatbot: React.FC = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyUp={handleSend}
+              onKeyUp={(e) => {
+                if (e.key === "Enter") {
+                  handleSend();
+                }
+              }}
               className="flex-1 p-2 border rounded-l text-gray-900"
               placeholder="Type your message..."
             />

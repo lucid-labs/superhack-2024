@@ -1,4 +1,3 @@
-// pages/_app.tsx
 "use client";
 import { ConnectWallet } from "@thirdweb-dev/react";
 import Image from "next/image";
