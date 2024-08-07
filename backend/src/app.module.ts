@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ChatbotModule } from './chatbot/chatbot.module';
+import { LucidityModule } from './lucidity/lucidity.module';
+import { GptAssistantModule } from './gpt-assistant/gpt-assistant.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ChatbotModule, LucidityModule, GptAssistantModule],
 })
 export class AppModule {}
