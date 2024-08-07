@@ -9,7 +9,12 @@ import configuration from '../config';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.development', '.env.staging', '.env.production'],
+      envFilePath: [
+        '.env.development',
+        '.env.staging',
+        '.env.production',
+        '.env',
+      ],
       load: [configuration],
     }),
     ChatbotModule,

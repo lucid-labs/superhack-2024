@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OpenAI, ClientOptions } from 'openai';
 import { Thread } from 'openai/resources/beta/threads/threads';
+import { json } from 'stream/consumers';
 
 @Injectable()
 export class GptAssistantService {
@@ -9,10 +11,10 @@ export class GptAssistantService {
   private readonly threads = new Map<string, Thread>(); // In-memory mapping for user-thread association
   private assistantId: string;
 
-  constructor() {
-    this.assistantId = 'your-assistant-id';
+  constructor(private configService: ConfigService) {
+    this.assistantId = this.configService.get('assistantId');
     this.openai = new OpenAI({
-      apiKey: 'your-api-key',
+      apiKey: this.configService.get('openapiApikey'),
     });
   }
 
@@ -20,9 +22,11 @@ export class GptAssistantService {
     let thread = this.threads.get(userId);
 
     if (!thread || !thread?.id) {
+      this.logger.log(`Thread not found`);
       thread = await this.createThread(message);
       this.threads.set(userId, thread);
     } else {
+      this.logger.log(`Thread found`);
       await this.addMessageToThread(thread, message);
     }
 
@@ -54,6 +58,7 @@ export class GptAssistantService {
           },
         ],
       });
+      this.logger.log(`Thread created: ${thread.id}`);
       return thread;
     } catch (error) {
       this.logger.error('Error creating thread:', error);
@@ -66,10 +71,14 @@ export class GptAssistantService {
     message: string,
   ): Promise<void> {
     try {
-      await this.openai.beta.threads.messages.create(thread.id, {
-        role: 'user',
-        content: `${message}`,
-      });
+      const messageResponse = await this.openai.beta.threads.messages.create(
+        thread.id,
+        {
+          role: 'user',
+          content: `${message}`,
+        },
+      );
+      this.logger.log(`Message added to thread: ${messageResponse.id}`);
     } catch (error) {
       this.logger.error('Error adding message to thread:', error);
       throw new Error('Could not add message to thread.');
@@ -77,6 +86,7 @@ export class GptAssistantService {
   }
 
   private async runThread(thread: Thread): Promise<any> {
+    this.logger.log(`Running thread: ${thread.id}`);
     try {
       const run = await this.openai.beta.threads.runs.create(thread.id, {
         assistant_id: this.assistantId,
@@ -92,10 +102,16 @@ export class GptAssistantService {
         runStatus = runStatusResponse.status;
       }
 
+      this.logger.log(`Thread run completed: ${thread.id}`);
+
       const messagesResponse = await this.openai.beta.threads.messages.list(
         thread.id,
       );
-      const finalMessage = messagesResponse.data;
+      const finalMessage = JSON.parse(
+        messagesResponse.data[0].content[0][
+          messagesResponse.data[0].content[0].type
+        ].value,
+      );
       return finalMessage;
     } catch (error) {
       this.logger.error('Error running thread:', error);
