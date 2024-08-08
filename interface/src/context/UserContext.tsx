@@ -1,4 +1,7 @@
 "use client";
+import { TokenBalance } from "@/types/token.types";
+import { getReadableValue } from "@/utils/convert";
+import axios from "axios";
 import {
   createContext,
   useCallback,
@@ -7,9 +10,6 @@ import {
   useState,
 } from "react";
 import { useWallet } from "./ThirdwebContext";
-import axios from "axios";
-import { TokenBalance } from "@/types/token.types";
-import { getReadableValue } from "@/utils/convert";
 
 // Create a context to manage user details
 const UserContext = createContext<{
@@ -27,7 +27,7 @@ const UserContext = createContext<{
 const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { address, chainId } = useWallet();
+  const { address, chain } = useWallet();
   const [userBalances, setUserBalancesState] = useState<TokenBalance[]>([]);
   const [fetchEoaBalancesFlag, setFetchEoaBalancesFlagState] =
     useState<boolean>(false);
@@ -49,7 +49,7 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
           tokenBalances: TokenBalance[];
         }>(
           process.env.NEXT_PUBLIC_API_URL +
-            `/balances/${chainId}/${address}?resetCache=${FORCE_REFRESH}`
+            `/balances/${chain?.chainId}/${address}?resetCache=${FORCE_REFRESH}`
         );
         if (res.status === 200) {
           const balances = res.data?.tokenBalances.map((x) => {
@@ -63,12 +63,12 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log(error);
       }
     };
-    if (address !== "" && chainId !== undefined) return getBalances();
-  }, [chainId, address, setUserBalances]);
+    if (address !== "" && chain?.chainId !== undefined) return getBalances();
+  }, [chain?.chainId, address, setUserBalances]);
 
   useEffect(() => {
     getEoaBalances();
-  }, [address, chainId, fetchEoaBalancesFlag, getEoaBalances]);
+  }, [address, chain?.chainId, fetchEoaBalancesFlag, getEoaBalances]);
 
   return (
     <UserContext.Provider

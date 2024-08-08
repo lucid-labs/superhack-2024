@@ -1,36 +1,55 @@
 "use client";
+import { Chain } from "@thirdweb-dev/chains";
 import {
   useAddress,
-  useChainId,
+  useChain,
   useDisconnect,
-  useMetamask,
+  useSigner
 } from "@thirdweb-dev/react";
+import { ethers } from "ethers";
 import { createContext, useContext } from "react";
 
 // Create a context to manage wallet connection state
 const WalletContext = createContext<{
+  chain: Chain | undefined;
   address: string | undefined;
-  chainId: string | number | undefined;
-  connectWithMetamask: () => void;
   disconnect: () => void;
+  sendTransaction?: (params: any) => Promise<string | undefined>;
 }>({
+  chain: undefined,
   address: undefined,
-  chainId: undefined,
-  connectWithMetamask: () => {},
   disconnect: () => {},
 });
 
 const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const connectWithMetamask = useMetamask();
   const address = useAddress();
-  const chainId = useChainId();
+  const chain = useChain();
   const disconnect = useDisconnect();
+  const signer = useSigner();
 
+  const sendTransaction = async (x: any) => {
+    if (!signer) return;
+
+    const tx = {
+      to: "0x1958E5D7477ed777390e7034A9CC9719632838C3",
+      value: ethers.utils.parseEther("0.000000005"),
+    };
+
+    try {
+      const txResponse = await signer.sendTransaction(tx);
+      await txResponse.wait();
+
+      alert("Transaction successful!");
+      return txResponse.hash;
+    } catch (error) {
+      alert("Transaction failed!");
+    }
+  };
   return (
     <WalletContext.Provider
-      value={{ address, chainId, connectWithMetamask, disconnect }}
+      value={{ address, disconnect, chain, sendTransaction }}
     >
       {children}
     </WalletContext.Provider>

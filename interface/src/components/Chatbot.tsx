@@ -3,51 +3,45 @@
 import { CHAINS, SupportedChainId } from "@/constants/chains";
 import { useWallet } from "@/context/ThirdwebContext";
 import { useUser } from "@/context/UserContext";
-import { decimalPoints } from "@/utils/config";
-import { truncate } from "@/utils/convert";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
 import { BsSend } from "react-icons/bs";
+import { MdDone } from "react-icons/md";
 
 const examplePrompts = [
   "Find the Ethereum's borrow rate for last 7 days on Aave V2.",
   "How much Liquidty does Compound have for ETH-USDC Pair ?",
 ];
 const Chatbot: React.FC = () => {
-  const { address, chainId } = useWallet();
   const { userBalances } = useUser();
   const [input, setInput] = useState<string>("");
   const [isChatbox, setIsChatbox] = useState<boolean>(false);
   const [messages, setMessages] = useState<
-    { text: string; user: "user" | "bot" }[]
+    {
+      text: string;
+      user: "user" | "bot";
+      interactive?: React.ReactElement;
+      alreadyInteracted?: boolean;
+    }[]
   >([]);
-
+  const { address, chain, sendTransaction } = useWallet();
   useEffect(() => {
     if (!address) {
       setIsChatbox(false);
     } else {
-      const chainName = CHAINS[chainId as SupportedChainId].name;
+      const chainName = CHAINS[chain?.chainId as SupportedChainId].name;
       const nativeToken =
-        CHAINS[chainId as SupportedChainId].nativeCurrency.symbol;
+        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.symbol;
       const decimals =
-        CHAINS[chainId as SupportedChainId].nativeCurrency.decimals;
+        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.decimals;
       console.log({ decimals });
       const balance = userBalances.find(
         (x) => x.symbol.toLowerCase() === nativeToken.toLowerCase()
       )?.tokenBalance!;
       setIsChatbox(true);
-      setMessages([
-        {
-          text: `Welcome to the Lucidity AI. You are connected with Your wallet address ${address} on ${chainName}. You have a balance of ${truncate(
-            balance,
-            decimalPoints.token
-          )} ${nativeToken}`,
-          user: "bot",
-        },
-      ]);
     }
-  }, [address, chainId, userBalances]);
+  }, [address, chain?.chainId, userBalances]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -69,6 +63,38 @@ const Chatbot: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const onSendTxn = async () => {
+    const x = sendTransaction && (await sendTransaction({}));
+    const msgIndex = messages.reverse().findIndex((res) => typeof x === "string" && res.user === "bot" );
+    if (msgIndex > -1) {
+     const msgs = [...messages]
+     msgs[msgIndex].alreadyInteracted = true
+      setMessages(msgs);
+    }
+  };
+
+  useEffect(() => {
+    if (messages.length === 0 && address) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          text: `You are connected to ${chain?.name} with ${address}`,
+          user: "bot",
+          interactive: (
+            <button
+              className={
+                "px-2 ml-1 bg-green-500 text-stone-100 rounded-md shadow-sm"
+              }
+              onClick={onSendTxn}
+            >
+              {false ? <MdDone /> : "Confirm"}
+            </button>
+          ),
+        },
+      ]);
+    }
+  }, [address, messages, chain]);
 
   const suggestedReplies = [
     "Tell me more.",
@@ -135,7 +161,9 @@ const Chatbot: React.FC = () => {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`my-2 p-2 rounded shadow-sm
+                className={`my-2 p-2 rounded shadow-sm ${
+                  message.interactive && "inline-flex w-full justify-between"
+                }
                 ${
                   message.user === "user"
                     ? "bg-gray-200 text-gray-900 text-right w-auto"
@@ -143,6 +171,7 @@ const Chatbot: React.FC = () => {
                 }`}
               >
                 {message.text}
+                {message.interactive}
               </div>
             ))}
             <div ref={messagesEndRef} />
