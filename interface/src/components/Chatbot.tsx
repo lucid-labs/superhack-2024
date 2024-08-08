@@ -1,6 +1,10 @@
 "use client";
 
+import { CHAINS, SupportedChainId } from "@/constants/chains";
 import { useWallet } from "@/context/ThirdwebContext";
+import { useUser } from "@/context/UserContext";
+import { decimalPoints } from "@/utils/config";
+import { truncate } from "@/utils/convert";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
@@ -11,17 +15,39 @@ const examplePrompts = [
   "How much Liquidty does Compound have for ETH-USDC Pair ?",
 ];
 const Chatbot: React.FC = () => {
+  const { address, chainId } = useWallet();
+  const { userBalances } = useUser();
   const [input, setInput] = useState<string>("");
   const [isChatbox, setIsChatbox] = useState<boolean>(false);
   const [messages, setMessages] = useState<
     { text: string; user: "user" | "bot" }[]
   >([]);
-  const { address } = useWallet();
+
   useEffect(() => {
     if (!address) {
       setIsChatbox(false);
+    } else {
+      const chainName = CHAINS[chainId as SupportedChainId].name;
+      const nativeToken =
+        CHAINS[chainId as SupportedChainId].nativeCurrency.symbol;
+      const decimals =
+        CHAINS[chainId as SupportedChainId].nativeCurrency.decimals;
+      console.log({ decimals });
+      const balance = userBalances.find(
+        (x) => x.symbol.toLowerCase() === nativeToken.toLowerCase()
+      )?.tokenBalance!;
+      setIsChatbox(true);
+      setMessages([
+        {
+          text: `Welcome to the Lucidity AI. You are connected with Your wallet address ${address} on ${chainName}. You have a balance of ${truncate(
+            balance,
+            decimalPoints.token
+          )} ${nativeToken}`,
+          user: "bot",
+        },
+      ]);
     }
-  }, [address]);
+  }, [address, chainId, userBalances]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +78,7 @@ const Chatbot: React.FC = () => {
 
   return (
     <motion.div
-      className={`max-w-4xl mx-auto mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
+      className={`max-w-4xl mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
         isChatbox ? "max-w-full" : ""
       }`}
       initial={{ height: "50vh", width: "800px", maxWidth: "100%" }}
