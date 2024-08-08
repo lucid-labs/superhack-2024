@@ -118,4 +118,14 @@ export class GptAssistantService {
       throw new Error('Could not run the thread.');
     }
   }
+
+  async formatResponse(userId: string, data: any): Promise<any> {
+    const thread = this.threads.get(userId);
+    await this.addMessageToThread(
+      thread,
+      `Format the following data into a table format: ${JSON.stringify(data)}`,
+    );
+    const formattedResponse = await this.runThread(thread);
+    return formattedResponse;
+  }
 }
