@@ -23,7 +23,7 @@ import { redisStore } from 'cache-manager-redis-store';
     CacheModule.register<RedisClientOptions>({
       isGlobal: true,
       store: redisStore as any,
-      url: 'redis://localhost:6379',
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
       // Store-specific configuration:
     }),
     ChatbotModule,
