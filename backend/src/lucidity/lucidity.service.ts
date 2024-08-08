@@ -48,6 +48,7 @@ export class LucidityService {
       return { message: 'Invalid request object.' };
     }
 
+    console.log('*****************, here', this.baseUrl, requestObject);
     const response = await axios.post(
       `${this.baseUrl}/recommendation-engine`,
       requestObject,
@@ -84,11 +85,15 @@ export class LucidityService {
   }
 
   async getProtocolData(requestObject: ProtocolDataRequest): Promise<any> {
-    const { chainId, protocol } = requestObject;
-    const response = await axios.get(
-      `${this.baseUrl}/protocol-data/${chainId}/${protocol}`,
-    );
-    return response.data;
+    try {
+      const { chainId, protocol } = requestObject;
+      const response = await axios.get(
+        `${this.baseUrl}/protocol-data/${chainId}/${protocol}`,
+      );
+      return response.data;
+    } catch (e) {
+      this.logger.error('Error getting protocol data:', e);
+    }
   }
 
   async getUserData(requestObject: UserDataRequest): Promise<any> {

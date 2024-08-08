@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { GptAssistantService } from '../gpt-assistant/gpt-assistant.service';
 import { LucidityService } from '../lucidity/lucidity.service';
 import {
@@ -16,6 +16,7 @@ export interface ChatBotServiceResponse {
 
 @Injectable()
 export class ChatbotService {
+  private readonly logger = new Logger(ChatbotService.name);
   constructor(
     private readonly gptAssistantService: GptAssistantService,
     private readonly lucidityService: LucidityService,
@@ -45,28 +46,34 @@ export class ChatbotService {
     }
 
     let response;
-    switch (requestObject.actionType) {
-      case 'recommendation':
-        response = await this.lucidityService.getProtocolRecommendation(
-          requestObject as RecommendationRequest,
-        );
-        break;
-      case 'protocolAction':
-        response = await this.lucidityService.performProtocolAction(
-          requestObject as ProtocolActionRequest,
-        );
-        break;
-      case 'userData':
-        response = await this.lucidityService.getUserData(
-          requestObject as UserDataRequest,
-        );
-        break;
-      case 'protocolData':
-        response = await this.lucidityService.getProtocolData(
-          requestObject as ProtocolDataRequest,
-        );
-      default:
-        response = { message: 'Unsupported action type.' };
+    try {
+      switch (requestObject.actionType) {
+        case 'recommendation':
+          response = await this.lucidityService.getProtocolRecommendation(
+            requestObject as any,
+          );
+          break;
+        case 'protocolAction':
+          response = await this.lucidityService.performProtocolAction(
+            requestObject as any,
+          );
+          break;
+        case 'userData':
+          response = await this.lucidityService.getUserData(
+            requestObject as any,
+          );
+          break;
+        case 'protocolData':
+          response = await this.lucidityService.getProtocolData(
+            requestObject as any,
+          );
+          break;
+        default:
+          response = { message: 'Unsupported action type.' };
+      }
+    } catch (error) {
+      this.logger.error(error);
+      response = { message: error.message };
     }
 
     if (
@@ -74,12 +81,12 @@ export class ChatbotService {
       requestObject.actionType === 'protocolData' ||
       requestObject.actionType === 'userData'
     ) {
-      const formattedResponse = await this.gptAssistantService.formatResponse(
-        userId,
-        response,
-      );
+      // const formattedResponse = await this.gptAssistantService.formatResponse(
+      //   userId,
+      //   response,
+      // );
       return {
-        message: formattedResponse, // formattedResponse.message,
+        message: response, // formattedResponse.message,
         isExecutable: false,
       };
     }

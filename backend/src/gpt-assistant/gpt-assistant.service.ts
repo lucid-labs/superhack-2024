@@ -32,20 +32,7 @@ export class GptAssistantService {
 
     const assistantResponse = await this.runThread(thread);
 
-    if (!assistantResponse.isFinalResponse) {
-      return { message: assistantResponse.message };
-    }
-
-    const requestObject = assistantResponse.requestObject;
-
-    if (Object.keys(requestObject).length === 0) {
-      return {
-        message:
-          'There was an error processing your request. Please try again.',
-      };
-    }
-
-    return { requestObject, message: assistantResponse.message };
+    return assistantResponse;
   }
 
   private async createThread(message): Promise<Thread> {
@@ -112,6 +99,7 @@ export class GptAssistantService {
           messagesResponse.data[0].content[0].type
         ].value,
       );
+
       return finalMessage;
     } catch (error) {
       this.logger.error('Error running thread:', error);
@@ -120,11 +108,26 @@ export class GptAssistantService {
   }
 
   async formatResponse(userId: string, data: any): Promise<any> {
-    const thread = this.threads.get(userId);
-    await this.addMessageToThread(
-      thread,
-      `Format the following data into a table format: ${JSON.stringify(data)}`,
-    );
+    let thread = this.threads.get(userId);
+
+    if (!thread || !thread?.id) {
+      this.logger.log(`Thread not found`);
+      thread = await this.createThread(
+        `Format the following data into a table format: ${JSON.stringify(
+          data,
+        )}`,
+      );
+      this.threads.set(userId, thread);
+    } else {
+      this.logger.log(`Thread found`);
+      await this.addMessageToThread(
+        thread,
+        `Format the following data into a table format: ${JSON.stringify(
+          data,
+        )}`,
+      );
+    }
+
     const formattedResponse = await this.runThread(thread);
     return formattedResponse;
   }
