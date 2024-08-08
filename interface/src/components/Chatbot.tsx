@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
 import { BsSend } from "react-icons/bs";
+import { MdDone } from "react-icons/md";
 
 const examplePrompts = [
   "Find the Ethereum's borrow rate for last 7 days on Aave V2.",
@@ -14,9 +15,14 @@ const Chatbot: React.FC = () => {
   const [input, setInput] = useState<string>("");
   const [isChatbox, setIsChatbox] = useState<boolean>(false);
   const [messages, setMessages] = useState<
-    { text: string; user: "user" | "bot" }[]
+    {
+      text: string;
+      user: "user" | "bot";
+      interactive?: React.ReactElement;
+      alreadyInteracted?: boolean;
+    }[]
   >([]);
-  const { address } = useWallet();
+  const { address, chain, sendTransaction } = useWallet();
   useEffect(() => {
     if (!address) {
       setIsChatbox(false);
@@ -43,6 +49,38 @@ const Chatbot: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const onSendTxn = async () => {
+    const x = sendTransaction && (await sendTransaction({}));
+    const msgIndex = messages.reverse().findIndex((res) => typeof x === "string" && res.user === "bot" );
+    if (msgIndex > -1) {
+     const msgs = [...messages]
+     msgs[msgIndex].alreadyInteracted = true
+      setMessages(msgs);
+    }
+  };
+
+  useEffect(() => {
+    if (messages.length === 0 && address) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          text: `You are connected to ${chain?.name} with ${address}`,
+          user: "bot",
+          interactive: (
+            <button
+              className={
+                "px-2 ml-1 bg-green-500 text-stone-100 rounded-md shadow-sm"
+              }
+              onClick={onSendTxn}
+            >
+              {false ? <MdDone /> : "Confirm"}
+            </button>
+          ),
+        },
+      ]);
+    }
+  }, [address, messages, chain]);
 
   const suggestedReplies = [
     "Tell me more.",
@@ -109,7 +147,9 @@ const Chatbot: React.FC = () => {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`my-2 p-2 rounded shadow-sm
+                className={`my-2 p-2 rounded shadow-sm ${
+                  message.interactive && "inline-flex w-full justify-between"
+                }
                 ${
                   message.user === "user"
                     ? "bg-gray-200 text-gray-900 text-right w-auto"
@@ -117,6 +157,7 @@ const Chatbot: React.FC = () => {
                 }`}
               >
                 {message.text}
+                {message.interactive}
               </div>
             ))}
             <div ref={messagesEndRef} />
