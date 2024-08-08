@@ -92,7 +92,7 @@ export class ChatbotService {
     }
 
     return {
-      message: response.message,
+      message: response,
       isExecutable: true,
     };
   }
