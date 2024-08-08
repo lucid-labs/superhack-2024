@@ -1,5 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cache } from 'cache-manager';
 import { OpenAI, ClientOptions } from 'openai';
 import { Thread } from 'openai/resources/beta/threads/threads';
 import { json } from 'stream/consumers';
@@ -8,10 +10,12 @@ import { json } from 'stream/consumers';
 export class GptAssistantService {
   private readonly logger = new Logger(GptAssistantService.name);
   private readonly openai: OpenAI;
-  private readonly threads = new Map<string, Thread>(); // In-memory mapping for user-thread association
   private assistantId: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {
     this.assistantId = this.configService.get('assistantId');
     this.openai = new OpenAI({
       apiKey: this.configService.get('openapiApikey'),
@@ -19,12 +23,12 @@ export class GptAssistantService {
   }
 
   async interpretMessage(userId: string, message: string): Promise<any> {
-    let thread = this.threads.get(userId);
+    let thread = (await this.cacheManager.get(userId)) as Thread;
 
     if (!thread || !thread?.id) {
       this.logger.log(`Thread not found`);
       thread = await this.createThread(message);
-      this.threads.set(userId, thread);
+      this.cacheManager.set(userId, thread);
     } else {
       this.logger.log(`Thread found`);
       await this.addMessageToThread(thread, message);
@@ -108,7 +112,7 @@ export class GptAssistantService {
   }
 
   async formatResponse(userId: string, data: any): Promise<any> {
-    let thread = this.threads.get(userId);
+    let thread = (await this.cacheManager.get(userId)) as Thread;
 
     if (!thread || !thread?.id) {
       this.logger.log(`Thread not found`);
@@ -117,7 +121,7 @@ export class GptAssistantService {
           data,
         )}`,
       );
-      this.threads.set(userId, thread);
+      await this.cacheManager.set(userId, thread);
     } else {
       this.logger.log(`Thread found`);
       await this.addMessageToThread(
