@@ -1,6 +1,8 @@
 "use client";
 
+import { CHAINS, SupportedChainId } from "@/constants/chains";
 import { useWallet } from "@/context/ThirdwebContext";
+import { useUser } from "@/context/UserContext";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
@@ -12,6 +14,7 @@ const examplePrompts = [
   "How much Liquidty does Compound have for ETH-USDC Pair ?",
 ];
 const Chatbot: React.FC = () => {
+  const { userBalances } = useUser();
   const [input, setInput] = useState<string>("");
   const [isChatbox, setIsChatbox] = useState<boolean>(false);
   const [messages, setMessages] = useState<
@@ -26,8 +29,19 @@ const Chatbot: React.FC = () => {
   useEffect(() => {
     if (!address) {
       setIsChatbox(false);
+    } else {
+      const chainName = CHAINS[chain?.chainId as SupportedChainId].name;
+      const nativeToken =
+        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.symbol;
+      const decimals =
+        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.decimals;
+      console.log({ decimals });
+      const balance = userBalances.find(
+        (x) => x.symbol.toLowerCase() === nativeToken.toLowerCase()
+      )?.tokenBalance!;
+      setIsChatbox(true);
     }
-  }, [address]);
+  }, [address, chain?.chainId, userBalances]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +104,7 @@ const Chatbot: React.FC = () => {
 
   return (
     <motion.div
-      className={`max-w-4xl mx-auto mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
+      className={`max-w-4xl mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
         isChatbox ? "max-w-full" : ""
       }`}
       initial={{ height: "50vh", width: "800px", maxWidth: "100%" }}
