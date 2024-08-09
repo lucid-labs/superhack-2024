@@ -12,6 +12,10 @@ import {
 export interface ChatBotServiceResponse {
   message: string;
   isExecutable: boolean;
+  recommendation?: any;
+  protocolAction?: any;
+  protocolData?: any;
+  userData?: any;
 }
 
 @Injectable()
@@ -40,6 +44,7 @@ export class ChatbotService {
     if (Object.keys(requestObject).length === 0) {
       return {
         message:
+          assistantResponse.message ||
           'Sorry, I could not process your request. I am still learning you know! Please try again.',
         isExecutable: false,
       };
@@ -52,48 +57,45 @@ export class ChatbotService {
           response = await this.lucidityService.getProtocolRecommendation(
             requestObject as any,
           );
-          break;
+          return {
+            message: 'Possible opportunities',
+            isExecutable: false,
+            recommendation: response,
+          };
         case 'protocolAction':
           response = await this.lucidityService.performProtocolAction(
             requestObject as any,
           );
-          break;
+          return {
+            message: 'Transaction metadata',
+            isExecutable: true,
+            protocolAction: response,
+          };
         case 'userData':
           response = await this.lucidityService.getUserData(
             requestObject as any,
           );
-          break;
+          return {
+            message: 'User data',
+            isExecutable: false,
+            userData: response,
+          };
         case 'protocolData':
           response = await this.lucidityService.getProtocolData(
             requestObject as any,
           );
-          break;
+          return {
+            message: 'Protocol data',
+            isExecutable: false,
+            protocolData: response,
+          };
         default:
           response = { message: 'Unsupported action type.' };
+          return { message: 'Unsupported action type.', isExecutable: false };
       }
     } catch (error) {
       this.logger.error(error);
       response = { message: error.message };
     }
-
-    if (
-      requestObject.actionType === 'recommendation' ||
-      requestObject.actionType === 'protocolData' ||
-      requestObject.actionType === 'userData'
-    ) {
-      // const formattedResponse = await this.gptAssistantService.formatResponse(
-      //   userId,
-      //   response,
-      // );
-      return {
-        message: response, // formattedResponse.message,
-        isExecutable: false,
-      };
-    }
-
-    return {
-      message: response,
-      isExecutable: true,
-    };
   }
 }
