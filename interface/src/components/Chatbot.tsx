@@ -30,11 +30,11 @@ const Chatbot: React.FC = () => {
     if (!address) {
       setIsChatbox(false);
     } else {
-      const chainName = CHAINS[chain?.chainId as SupportedChainId].name;
+      const chainName = CHAINS[chain?.chainId as SupportedChainId]?.name;
       const nativeToken =
-        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.symbol;
+        CHAINS[chain?.chainId as SupportedChainId]?.nativeCurrency.symbol;
       const decimals =
-        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.decimals;
+        CHAINS[chain?.chainId as SupportedChainId]?.nativeCurrency.decimals;
       console.log({ decimals });
       const balance = userBalances.find(
         (x) => x.symbol.toLowerCase() === nativeToken.toLowerCase()
@@ -66,10 +66,12 @@ const Chatbot: React.FC = () => {
 
   const onSendTxn = async () => {
     const x = sendTransaction && (await sendTransaction({}));
-    const msgIndex = messages.reverse().findIndex((res) => typeof x === "string" && res.user === "bot" );
+    const msgIndex = messages
+      .reverse()
+      .findIndex((res) => typeof x === "string" && res.user === "bot");
     if (msgIndex > -1) {
-     const msgs = [...messages]
-     msgs[msgIndex].alreadyInteracted = true
+      const msgs = [...messages];
+      msgs[msgIndex].alreadyInteracted = true;
       setMessages(msgs);
     }
   };
