@@ -1,62 +1,57 @@
 "use client";
 
-import { CHAINS, SupportedChainId } from "@/constants/chains";
+import { useLucidity } from "@/context/LucidityContext";
 import { useWallet } from "@/context/ThirdwebContext";
-import { useUser } from "@/context/UserContext";
+import { MessageResponse } from "@/types/message.types";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
 import { BsSend } from "react-icons/bs";
 import { MdDone } from "react-icons/md";
+import Markdown from "react-markdown";
+import UserDataSummaryTable from "./UserDataSummary";
 
+interface MessageProps extends Partial<MessageResponse> {
+  user: "user" | "bot";
+  interactive?: React.ReactElement;
+  alreadyInteracted?: boolean;
+}
 const examplePrompts = [
   "Find the Ethereum's borrow rate for last 7 days on Aave V2.",
   "How much Liquidty does Compound have for ETH-USDC Pair ?",
 ];
 const Chatbot: React.FC = () => {
-  const { userBalances } = useUser();
   const [input, setInput] = useState<string>("");
   const [isChatbox, setIsChatbox] = useState<boolean>(false);
-  const [messages, setMessages] = useState<
-    {
-      text: string;
-      user: "user" | "bot";
-      interactive?: React.ReactElement;
-      alreadyInteracted?: boolean;
-    }[]
-  >([]);
+  const [isBotLoading, setIsBotLoading] = useState<boolean>(false);
+  const [messages, setMessages] = useState<MessageProps[]>([]);
   const { address, chain, sendTransaction } = useWallet();
+  const { sendMessage } = useLucidity();
   useEffect(() => {
     if (!address) {
       setIsChatbox(false);
     } else {
-      const chainName = CHAINS[chain?.chainId as SupportedChainId].name;
-      const nativeToken =
-        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.symbol;
-      const decimals =
-        CHAINS[chain?.chainId as SupportedChainId].nativeCurrency.decimals;
-      console.log({ decimals });
-      const balance = userBalances.find(
-        (x) => x.symbol.toLowerCase() === nativeToken.toLowerCase()
-      )?.tokenBalance!;
       setIsChatbox(true);
     }
-  }, [address, chain?.chainId, userBalances]);
+  }, [address, chain?.chainId]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (input.trim()) {
-      setMessages([...messages, { text: input, user: "user" }]);
+  const handleSend = async () => {
+    const trimmedInput = input.trim();
+    if (trimmedInput && sendMessage) {
+      setMessages([...messages, { message: input, user: "user" }]);
       setInput("");
-
-      // Simulate bot response
-      setTimeout(() => {
+      setIsBotLoading(true);
+      const res = await sendMessage(trimmedInput);
+      console.log(res, "message");
+      if (res) {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: "This is a bot response.", user: "bot" },
+          { ...res, user: "bot" },
         ]);
-      }, 1000);
+      }
+      setIsBotLoading(false);
     }
   };
 
@@ -66,21 +61,25 @@ const Chatbot: React.FC = () => {
 
   const onSendTxn = async () => {
     const x = sendTransaction && (await sendTransaction({}));
-    const msgIndex = messages.reverse().findIndex((res) => typeof x === "string" && res.user === "bot" );
+    const msgIndex = messages
+      .reverse()
+      .findIndex((res) => typeof x === "string" && res.user === "bot");
     if (msgIndex > -1) {
-     const msgs = [...messages]
-     msgs[msgIndex].alreadyInteracted = true
+      const msgs = [...messages];
+      msgs[msgIndex].alreadyInteracted = true;
       setMessages(msgs);
     }
   };
 
   useEffect(() => {
     if (messages.length === 0 && address) {
+      const msg = `You are connected to ${chain?.name} with ${address}`;
+
       setMessages((prevMessages) => [
         ...prevMessages,
         {
-          text: `You are connected to ${chain?.name} with ${address}`,
-          user: "bot",
+          message: msg,
+          user: "user",
           interactive: (
             <button
               className={
@@ -93,8 +92,24 @@ const Chatbot: React.FC = () => {
           ),
         },
       ]);
+      const firstResponse = async () => {
+        const res = sendMessage && (await sendMessage(msg));
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { ...res, user: "bot" },
+        ]);
+      };
+      firstResponse();
     }
   }, [address, messages, chain]);
+
+  // useEffect(() => {
+  //   const lastMsg = messages.pop()
+  //   if(lastMsg?.user === "user") {
+
+  //   }
+
+  // }, [messages])
 
   const suggestedReplies = [
     "Tell me more.",
@@ -170,7 +185,8 @@ const Chatbot: React.FC = () => {
                     : "bg-gray-300 text-left"
                 }`}
               >
-                {message.text}
+                {message.message?.toLowerCase() !== "user data" && <Markdown>{message.message}</Markdown>}
+                {message?.userData && <UserDataSummaryTable data={message.userData}/>}
                 {message.interactive}
               </div>
             ))}
@@ -199,6 +215,7 @@ const Chatbot: React.FC = () => {
                   handleSend();
                 }
               }}
+              disabled={isBotLoading}
               className="flex-1 p-2 border rounded-l text-gray-900"
               placeholder="Type your message..."
             />

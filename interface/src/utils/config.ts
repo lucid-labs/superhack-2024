@@ -13,3 +13,4 @@ export const decimalPoints = {
 
 export const TOKEN_URI =
   "https://gray-hollow-basilisk-596.mypinata.cloud/ipfs/Qmcw1HKedTvzRDoptpF4F9HpCJnP6MBJ7ApJQLyJoBXEJw";
+

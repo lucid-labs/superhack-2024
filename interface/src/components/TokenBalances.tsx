@@ -1,6 +1,7 @@
 import { useUser } from "@/context/UserContext";
 import { decimalPoints } from "@/utils/config";
 import { truncate } from "@/utils/convert";
+import BigNumber from "bignumber.js";
 import { useMemo } from "react";
 import { Box, Flex, Image, Text } from "rebass";
 
@@ -17,9 +18,9 @@ const TokenBalances: React.FC = () => {
 
   return (
     <div className="mt-12 p-6 w-[25rem] bg-gray-100 text-gray-900 rounded-lg shadow-md text-center max-w-full h-[580px] overflow-scroll">
-      <div className="font-semibold text-left mb-6">Supported Tokens</div>
+      <div className="font-semibold text-left mb-6">Token Balances (Zero Balance Hidden)</div>
       <Box className="list-wrap">
-        {supportedTokens?.map((token) => (
+        {supportedTokens?.filter(res => new BigNumber(res.tokenBalance).isGreaterThan(0) ).map((token) => (
           <Flex
             flexDirection="row"
             sx={{ gap: "12px" }}
@@ -28,9 +29,9 @@ const TokenBalances: React.FC = () => {
             width={"100%"}
           >
             <Image
-              src={token.logo ? token.logo : ""}
-              width="32px"
-              height="32px"
+              src={token.logo ? token.logo : "/icons/unknown_coin_logo.svg"}
+              width="28px"
+              height="24px"
               sx={{ borderRadius: "50%" }}
               alt={token.name}
             />
@@ -45,11 +46,10 @@ const TokenBalances: React.FC = () => {
                 mb="4px"
                 className="text-left"
               >
-                {token.name}
+                {token.symbol}
               </Text>
               <Text fontSize={"14px"} color={"#6f6d78"} className="text-right">
-                {truncate(token.tokenBalance, decimalPoints.token)}{" "}
-                {token.symbol}
+                {truncate(token.tokenBalance, decimalPoints.token)}
               </Text>
             </Flex>
           </Flex>
