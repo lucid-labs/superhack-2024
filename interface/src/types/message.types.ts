@@ -2,7 +2,8 @@ export interface MessageResponse {
   message: string;
   protocolData?: ProtocolData;
   userData?: UserData;
-  recommendation: RecommendationData[];
+  recommendation?: RecommendationData[];
+  protocolAction?: TransactionMetadataDetails
   isExecutable: boolean;
 }
 
@@ -137,3 +138,24 @@ interface AdditionalInfo {
     score: number;
   }
   
+  // Define interfaces
+interface DataItem {
+    data: string;
+    to: string;
+    value: string;
+    metadata: string;
+  }
+  
+  export interface TransactionMetadataDetails {
+    actionType: string;
+    type: string;
+    protocol: string;
+    assetSymbol: string;
+    assetAddress: string;
+    chainId: number;
+    amount: string;
+    userAddress: string;
+    misc: Record<string, any>;
+    assetDecimals: number;
+    data: DataItem[];
+  }
