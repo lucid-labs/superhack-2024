@@ -10,6 +10,7 @@ import { BsSend } from "react-icons/bs";
 import { MdDone } from "react-icons/md";
 import Markdown from "react-markdown";
 import ProtocolDataSummary from "./ProtocolDataSummary";
+import RecommendationDataSummary from "./RecommendationDataSummary";
 import UserDataSummaryTable from "./UserDataSummary";
 
 interface MessageProps extends Partial<MessageResponse> {
@@ -188,7 +189,8 @@ const Chatbot: React.FC = () => {
                     : "bg-gray-300 text-left"
                 }`}
               >
-                {!["user data", "protocol data"].includes(message.message?.toLowerCase()) && <Markdown>{message.message}</Markdown>}
+                {!["user data", "protocol data", "possible opportunities" ].includes(message.message?.toLowerCase()) && <Markdown>{message.message}</Markdown>}
+                {message?.recommendation && <RecommendationDataSummary data={message.recommendation}/>}
                 {message?.protocolData && <ProtocolDataSummary data={message.protocolData}/>}
                 {message?.userData && <UserDataSummaryTable data={message.userData}/>}
                 {message.interactive}
