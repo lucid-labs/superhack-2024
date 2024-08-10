@@ -147,7 +147,7 @@ export default function Home() {
     };
   }, []);
   return (
-    <main className="flex min-h-screen flex-col items-center p-12">
+    <main className="flex min-h-screen flex-col items-center p-12 px-4 md:px-12">
       <ThirdwebProvider
         supportedChains={[Ethereum, Base, customChain]}
         supportedWallets={[

@@ -54,7 +54,7 @@ export const CHAINS: Record<SupportedChainId, Chain> = {
       16
     )}`,
     name: "Simulation",
-    rpcURL: process.env.NEXT_PUBLIC_DEVNET!,
+    rpcURL: process.env.NEXT_PUBLIC_DEVNET,
     alias: "Devnet",
     nativeCurrency: {
       name: "Ether",
@@ -62,7 +62,7 @@ export const CHAINS: Record<SupportedChainId, Chain> = {
       decimals: 18,
     },
     blockExplorerUrls: [
-      "https://dashboard.tenderly.co/explorer/fork/841e47f8-a6df-4642-9748-d23d83826ae5",
+      "https://dashboard.tenderly.co/explorer/fork/b6491654-8372-421e-b788-9afc50c57280",
     ],
     logo: "/icons/network/simulation.svg",
   },

@@ -1,11 +1,11 @@
 "use client";
 import { useLucidity } from "@/context/LucidityContext";
 
+import { useWallet } from "@/context/ThirdwebContext";
 import { ConnectWallet } from "@thirdweb-dev/react";
 import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import NetworkCard from "./NetworkCard";
-import { useWallet } from "@/context/ThirdwebContext";
 import SimulationModeModal from "./SimulationModeModal";
 
 const Header: React.FC = () => {
@@ -43,7 +43,7 @@ const Header: React.FC = () => {
         <Image src="/lucidity.png" height={60} width={60} alt="logo" />
       </div>
       {address && (
-        <div className="absolute top-4 right-56 bg-gray-100 text-gray-900 rounded-full shadow-sm">
+        <div className="absolute top-4 right-56 bg-gray-100 text-gray-900 rounded-lg shadow-sm">
           <NetworkCard
             toggleShowModalForSimulation={() =>
               toggleShowModalForSimulation(true)

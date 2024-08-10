@@ -9,6 +9,7 @@ import { AiOutlineSend } from "react-icons/ai";
 import { BsSend } from "react-icons/bs";
 import { MdDone } from "react-icons/md";
 import Markdown from "react-markdown";
+import ProtocolDataSummary from "./ProtocolDataSummary";
 import UserDataSummaryTable from "./UserDataSummary";
 
 interface MessageProps extends Partial<MessageResponse> {
@@ -121,14 +122,16 @@ const Chatbot: React.FC = () => {
     <motion.div
       className={`max-w-4xl mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
         isChatbox ? "max-w-full" : ""
-      }`}
-      initial={{ height: "50vh", width: "800px", maxWidth: "100%" }}
-      animate={{ height: isChatbox ? "80vh" : "50vh", maxWidth: "100%" }}
+      } sm:h-full`}
+      initial={{ height: "50vh", width: "100%", maxWidth: "100%" }}
+      animate={{ height: isChatbox ? "80vh" : "50vh", maxWidth: "100%" , width: "100%", 
+        
+      }}
       transition={{ duration: 1.5 }}
     >
       {!isChatbox && (
-        <>
-          <h1 className="text-3xl font-bold mb-2">Lucidity AI</h1>
+        <div className="px:[5%] md:px-[20%] py-[5%]">
+          <h1 className="text-3xl font-bold mb-2">LuciBot AI</h1>
           <p className="text-xl mb-6">Ask De-Fi related questions.</p>
 
           <div className="flex justify-center items-center mb-6">
@@ -149,7 +152,7 @@ const Chatbot: React.FC = () => {
                 !address ? "bg-gray-300 cursor-not-allowed" : "bg-gray-600"
               }`}
             >
-              Find Out <BsSend className="ml-2 size-6" />
+             <span className="size-7"> Ask!</span>&nbsp; <BsSend className="ml-2 size-4 md:size-6" />
             </button>
           </div>
 
@@ -167,7 +170,7 @@ const Chatbot: React.FC = () => {
               ))}
             </ul>
           </div>
-        </>
+        </div>
       )}
 
       {isChatbox && (
@@ -185,7 +188,8 @@ const Chatbot: React.FC = () => {
                     : "bg-gray-300 text-left"
                 }`}
               >
-                {message.message?.toLowerCase() !== "user data" && <Markdown>{message.message}</Markdown>}
+                {!["user data", "protocol data"].includes(message.message?.toLowerCase()) && <Markdown>{message.message}</Markdown>}
+                {message?.protocolData && <ProtocolDataSummary data={message.protocolData}/>}
                 {message?.userData && <UserDataSummaryTable data={message.userData}/>}
                 {message.interactive}
               </div>

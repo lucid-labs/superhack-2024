@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
-import { Box, Text, Image, Flex } from "rebass/styled-components";
-import { useWallet } from "@/context/ThirdwebContext";
 import { CHAINS, SupportedChainId } from "@/constants/chains";
-import MenuOverlay from "./menu/MenuOverlay";
-import MenuItem from "./menu/MenuItem";
+import { useWallet } from "@/context/ThirdwebContext";
 import { useChain } from "@/hooks/useChain";
 import useOutsideAlerter from "@/hooks/useOutsideAlerter";
+import React, { useEffect } from "react";
+import { Box, Flex, Image, Text } from "rebass/styled-components";
+import MenuItem from "./menu/MenuItem";
+import MenuOverlay from "./menu/MenuOverlay";
 
 interface NetworkCardProps {
   toggleShowModalForSimulation: () => void;
@@ -111,9 +111,8 @@ const NetworkCard = ({ toggleShowModalForSimulation }: NetworkCardProps) => {
         width={63}
         height={63}
         // height={"100%"}
-        paddingX={"10px"}
         sx={{
-          borderRadius: 15,
+          borderRadius: 12,
           // border: `1px solid ${isWrongNetwork ? "#f00" : "#a7a7a7"}`,
         }}
       >
