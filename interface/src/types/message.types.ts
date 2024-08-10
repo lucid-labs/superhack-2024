@@ -139,7 +139,7 @@ interface AdditionalInfo {
   }
   
   // Define interfaces
-interface DataItem {
+export interface DataItem {
     data: string;
     to: string;
     value: string;
