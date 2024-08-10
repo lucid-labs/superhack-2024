@@ -6,12 +6,13 @@ import {
 } from "thirdweb/react";
 import { CHAINS, SupportedChainId } from "../constants/chains";
 import { useWallet } from "@/context/ThirdwebContext";
+import { useSwitchChain } from "@thirdweb-dev/react";
 // import Lucidity from "/lucidity.png";
 
 export const useChain = () => {
-  const { chainId: activeChain } = useWallet();
+  const { chain: activeChain } = useWallet();
 
-  const switchActiveChain = useSwitchActiveWalletChain();
+  const switchActiveChain = useSwitchChain();
   const simulationChain = useMemo(() => {
     const chain: Chain = {
       id: SupportedChainId.DEVNET,
@@ -62,13 +63,15 @@ export const useChain = () => {
   const switchChain = (switchTo: SupportedChainId) => {
     switch (switchTo) {
       case SupportedChainId.BASE:
-        switchActiveChain(base).then(() => window.location.reload());
+        switchActiveChain(base?.id).then(() => window.location.reload());
         break;
       case SupportedChainId.MAINNET:
-        switchActiveChain(ethereum).then(() => window.location.reload());
+        switchActiveChain(ethereum?.id).then(() => window.location.reload());
         break;
       case SupportedChainId.DEVNET:
-        switchActiveChain(simulationChain).then(() => window.location.reload());
+        switchActiveChain(simulationChain?.id).then(() =>
+          window.location.reload()
+        );
         break;
       default:
         break;
@@ -79,7 +82,9 @@ export const useChain = () => {
   }, []);
 
   const getActiveChainName = useMemo(() => {
-    return (CHAINS[activeChain as SupportedChainId]?.name as string) ?? "";
+    return (
+      (CHAINS[activeChain?.chainId as SupportedChainId]?.name as string) ?? ""
+    );
   }, [activeChain]);
 
   return {
