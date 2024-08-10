@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Lucidity ChatD5",
-  description: "DeFi Chatbot powered by Lucidity's AI",
+  title: "LuciBot ChatD5",
+  description: "Lucibot powered by Lucidity's AI",
 };
 
 export default function RootLayout({
@@ -16,6 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/lucidity.png" />
+      </head>
         <body className={inter.className}>{children}</body>
     </html>
   );

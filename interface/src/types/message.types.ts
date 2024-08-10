@@ -2,6 +2,7 @@ export interface MessageResponse {
   message: string;
   protocolData?: ProtocolData;
   userData?: UserData;
+  recommendation: RecommendationData[];
   isExecutable: boolean;
 }
 
@@ -97,3 +98,42 @@ export interface ProtocolData {
   totalBorrowedInBaseAsset: string;
   markets: MarketP[];
 }
+
+
+// Define the interface for the data
+interface AdditionalInfo {
+    chain: string;
+    project: string;
+    symbol: string;
+    tvlUsd: number;
+    apyBase: number | null;
+    apyReward: number | null;
+    apy: number;
+    rewardTokens: string[];
+    pool: string;
+    projectName: string;
+    url: string;
+    totalSupplyUsd: number;
+    totalBorrowUsd: number | null;
+  }
+  
+  export interface RecommendationData {
+    chain: string;
+    project: string;
+    supplyAsset: string;
+    borrowAsset: string;
+    supplyLiquidity: number;
+    netApy: number;
+    supplyApy: number;
+    borrowApy: number;
+    pool: string;
+    availableLiquidity: number;
+    borrowAssetSuppliedLiquidity: number;
+    ltv: number;
+    lt: number;
+    ut: number;
+    borrowAmount: string;
+    additionalInfo: AdditionalInfo;
+    score: number;
+  }
+  
