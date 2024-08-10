@@ -1,62 +1,58 @@
 "use client";
 
-import { CHAINS, SupportedChainId } from "@/constants/chains";
+import { useLucidity } from "@/context/LucidityContext";
 import { useWallet } from "@/context/ThirdwebContext";
-import { useUser } from "@/context/UserContext";
+import { MessageResponse } from "@/types/message.types";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
 import { BsSend } from "react-icons/bs";
 import { MdDone } from "react-icons/md";
+import Markdown from "react-markdown";
+import ProtocolDataSummary from "./ProtocolDataSummary";
+import UserDataSummaryTable from "./UserDataSummary";
 
+interface MessageProps extends Partial<MessageResponse> {
+  user: "user" | "bot";
+  interactive?: React.ReactElement;
+  alreadyInteracted?: boolean;
+}
 const examplePrompts = [
   "Find the Ethereum's borrow rate for last 7 days on Aave V2.",
   "How much Liquidty does Compound have for ETH-USDC Pair ?",
 ];
 const Chatbot: React.FC = () => {
-  const { userBalances } = useUser();
   const [input, setInput] = useState<string>("");
   const [isChatbox, setIsChatbox] = useState<boolean>(false);
-  const [messages, setMessages] = useState<
-    {
-      text: string;
-      user: "user" | "bot";
-      interactive?: React.ReactElement;
-      alreadyInteracted?: boolean;
-    }[]
-  >([]);
+  const [isBotLoading, setIsBotLoading] = useState<boolean>(false);
+  const [messages, setMessages] = useState<MessageProps[]>([]);
   const { address, chain, sendTransaction } = useWallet();
+  const { sendMessage } = useLucidity();
   useEffect(() => {
     if (!address) {
       setIsChatbox(false);
     } else {
-      const chainName = CHAINS[chain?.chainId as SupportedChainId]?.name;
-      const nativeToken =
-        CHAINS[chain?.chainId as SupportedChainId]?.nativeCurrency.symbol;
-      const decimals =
-        CHAINS[chain?.chainId as SupportedChainId]?.nativeCurrency.decimals;
-      console.log({ decimals });
-      const balance = userBalances.find(
-        (x) => x.symbol.toLowerCase() === nativeToken.toLowerCase()
-      )?.tokenBalance!;
       setIsChatbox(true);
     }
-  }, [address, chain?.chainId, userBalances]);
+  }, [address, chain?.chainId]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (input.trim()) {
-      setMessages([...messages, { text: input, user: "user" }]);
+  const handleSend = async () => {
+    const trimmedInput = input.trim();
+    if (trimmedInput && sendMessage) {
+      setMessages([...messages, { message: input, user: "user" }]);
       setInput("");
-
-      // Simulate bot response
-      setTimeout(() => {
+      setIsBotLoading(true);
+      const res = await sendMessage(trimmedInput);
+      console.log(res, "message");
+      if (res) {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: "This is a bot response.", user: "bot" },
+          { ...res, user: "bot" },
         ]);
-      }, 1000);
+      }
+      setIsBotLoading(false);
     }
   };
 
@@ -78,11 +74,13 @@ const Chatbot: React.FC = () => {
 
   useEffect(() => {
     if (messages.length === 0 && address) {
+      const msg = `You are connected to ${chain?.name} with ${address}`;
+
       setMessages((prevMessages) => [
         ...prevMessages,
         {
-          text: `You are connected to ${chain?.name} with ${address}`,
-          user: "bot",
+          message: msg,
+          user: "user",
           interactive: (
             <button
               className={
@@ -95,8 +93,24 @@ const Chatbot: React.FC = () => {
           ),
         },
       ]);
+      const firstResponse = async () => {
+        const res = sendMessage && (await sendMessage(msg));
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { ...res, user: "bot" },
+        ]);
+      };
+      firstResponse();
     }
   }, [address, messages, chain]);
+
+  // useEffect(() => {
+  //   const lastMsg = messages.pop()
+  //   if(lastMsg?.user === "user") {
+
+  //   }
+
+  // }, [messages])
 
   const suggestedReplies = [
     "Tell me more.",
@@ -108,14 +122,16 @@ const Chatbot: React.FC = () => {
     <motion.div
       className={`max-w-4xl mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
         isChatbox ? "max-w-full" : ""
-      }`}
-      initial={{ height: "50vh", width: "800px", maxWidth: "100%" }}
-      animate={{ height: isChatbox ? "80vh" : "50vh", maxWidth: "100%" }}
+      } sm:h-full`}
+      initial={{ height: "50vh", width: "100%", maxWidth: "100%" }}
+      animate={{ height: isChatbox ? "80vh" : "50vh", maxWidth: "100%" , width: "100%", 
+        
+      }}
       transition={{ duration: 1.5 }}
     >
       {!isChatbox && (
-        <>
-          <h1 className="text-3xl font-bold mb-2">Lucidity AI</h1>
+        <div className="px:[5%] md:px-[20%] py-[5%]">
+          <h1 className="text-3xl font-bold mb-2">LuciBot AI</h1>
           <p className="text-xl mb-6">Ask De-Fi related questions.</p>
 
           <div className="flex justify-center items-center mb-6">
@@ -136,7 +152,7 @@ const Chatbot: React.FC = () => {
                 !address ? "bg-gray-300 cursor-not-allowed" : "bg-gray-600"
               }`}
             >
-              Find Out <BsSend className="ml-2 size-6" />
+             <span className="size-7"> Ask!</span>&nbsp; <BsSend className="ml-2 size-4 md:size-6" />
             </button>
           </div>
 
@@ -154,7 +170,7 @@ const Chatbot: React.FC = () => {
               ))}
             </ul>
           </div>
-        </>
+        </div>
       )}
 
       {isChatbox && (
@@ -172,7 +188,9 @@ const Chatbot: React.FC = () => {
                     : "bg-gray-300 text-left"
                 }`}
               >
-                {message.text}
+                {!["user data", "protocol data"].includes(message.message?.toLowerCase()) && <Markdown>{message.message}</Markdown>}
+                {message?.protocolData && <ProtocolDataSummary data={message.protocolData}/>}
+                {message?.userData && <UserDataSummaryTable data={message.userData}/>}
                 {message.interactive}
               </div>
             ))}
@@ -201,6 +219,7 @@ const Chatbot: React.FC = () => {
                   handleSend();
                 }
               }}
+              disabled={isBotLoading}
               className="flex-1 p-2 border rounded-l text-gray-900"
               placeholder="Type your message..."
             />
