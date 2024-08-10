@@ -16,8 +16,6 @@ import UserDataSummaryTable from "./UserDataSummary";
 
 interface MessageProps extends Partial<MessageResponse> {
   user: "user" | "bot";
-  interactive?: React.ReactElement;
-  alreadyInteracted?: boolean;
 }
 const examplePrompts = [
   "Find the Ethereum's borrow rate for last 7 days on Aave V2.",
@@ -69,7 +67,6 @@ const Chatbot: React.FC = () => {
       .findIndex((res) => typeof x === "string" && res.user === "bot");
     if (msgIndex > -1) {
       const msgs = [...messages];
-      msgs[msgIndex].alreadyInteracted = true;
       setMessages(msgs);
     }
   };
@@ -181,9 +178,7 @@ const Chatbot: React.FC = () => {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`my-2 p-2 rounded shadow-sm ${
-                  message.interactive && "inline-flex w-full justify-between"
-                }
+                className={`my-2 p-2 rounded shadow-sm 
                 ${
                   message.user === "user"
                     ? "bg-gray-200 text-gray-900 text-right w-auto"
@@ -195,7 +190,7 @@ const Chatbot: React.FC = () => {
                 {message?.protocolAction && <TransactionDetail data={message.protocolAction}/>}
                 {message?.protocolData && <ProtocolDataSummary data={message.protocolData}/>}
                 {message?.userData && <UserDataSummaryTable data={message.userData}/>}
-                {message.interactive}
+              
               </div>
             ))}
             <div ref={messagesEndRef} />

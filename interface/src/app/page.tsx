@@ -15,6 +15,7 @@ import {
 import { type ChainOptions, defineChain } from "thirdweb/chains";
 import "./globals.css";
 
+import ToastProvider from "@/providers/toast.provider";
 import { useMemo } from "react";
 // import { useChain } from "@/hooks/useChain";
 // import { Ethereum } from "@thirdweb-dev/chains";
@@ -160,14 +161,16 @@ export default function Home() {
         // supportedChains={[simulationChain, Ethereum, baseChain]}
         clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
       >
-        <WalletProvider>
-          <LucidityProvider>
-            <UserProvider>
-              <Header />
-              <Dashboard />
-            </UserProvider>
-          </LucidityProvider>
-        </WalletProvider>
+        <ToastProvider>
+          <WalletProvider>
+            <LucidityProvider>
+              <UserProvider>
+                <Header />
+                <Dashboard />
+              </UserProvider>
+            </LucidityProvider>
+          </WalletProvider>
+        </ToastProvider>
       </ThirdwebProvider>
     </main>
   );

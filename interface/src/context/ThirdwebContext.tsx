@@ -7,6 +7,7 @@ import {
   useSigner
 } from "@thirdweb-dev/react";
 import { createContext, useContext } from "react";
+import { toast } from "react-toastify";
 
 // Create a context to manage wallet connection state
 const WalletContext = createContext<{
@@ -35,12 +36,10 @@ const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Sending transaction", tx)
       const txResponse = await signer.sendTransaction(tx);
       await txResponse.wait();
-
-      alert("Transaction successful!");
+      toast.success(`Transaction successful! ${txResponse.hash}`)
       return txResponse.hash;
     } catch (error) {
-      console.log("sending transaction", error)
-      alert("Transaction failed!");
+      toast.error(`Transaction failed! Try again`)
     }
   };
   return (
