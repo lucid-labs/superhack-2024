@@ -62,7 +62,8 @@ const TransactionDetail: React.FC<{ data: TransactionMetadataDetails }> = ({
                     <span className="font-medium">To:</span> {item.to}
                   </p>
                   <p>
-                    <span className="font-medium">Data:</span> {item.data}
+                    <span className="font-medium ">Data:</span>{" "}
+                    <p className="truncate">{item.data}</p>
                   </p>
                   <p>
                     <span className="font-medium">Value:</span>{" "}
