@@ -41,6 +41,8 @@ export class ChatbotService {
 
     const requestObject: RequestObject = assistantResponse.requestObject;
 
+    this.logger.log(`requestObject: ${JSON.stringify(requestObject)}`);
+
     if (Object.keys(requestObject).length === 0) {
       return {
         message:
