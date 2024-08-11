@@ -58,7 +58,7 @@ const TransactionDetail: React.FC<{ data: TransactionMetadataDetails }> = ({
       <div>
         <h2 className="text-xl font-semibold">Actions</h2>
         <ul className="list-disc pl-5 mt-2">
-          {data.data.map((item, index) => (
+          {data?.data?.map((item, index) => (
             <li key={index} className="py-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{item.metadata}</span>

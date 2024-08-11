@@ -1,8 +1,10 @@
+import { useAddress } from "@thirdweb-dev/react";
 import { Flex } from "rebass";
 import Chatbot from "./Chatbot";
 import TokenBalances from "./TokenBalances";
 
 const Dashboard: React.FC = () => {
+const address = useAddress()
   return (
     <Flex
       className="flex flex-col md:flex-row gap-4 mx-auto w-full justify-between"
@@ -12,7 +14,7 @@ const Dashboard: React.FC = () => {
         },
       }}
     >
-      <TokenBalances />
+     {address && <TokenBalances />}
       <Chatbot />
     </Flex>
   );
