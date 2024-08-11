@@ -113,9 +113,9 @@ const Chatbot: React.FC = () => {
   // }, [messages])
 
   const suggestedReplies = [
-    "Tell me more.",
-    "Can you explain that?",
-    "What do you mean?",
+    "Give me the supported protocols",
+    "Where can I borrow USDC?",
+    "Show me my positions on Aave V3",
   ];
 
   return (
@@ -123,9 +123,9 @@ const Chatbot: React.FC = () => {
       className={`max-w-4xl mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
         isChatbox ? "max-w-full" : ""
       } sm:h-full`}
-      initial={{ height: "50vh", width: "100%", maxWidth: "100%" }}
+      initial={{ height: "80vh", width: "100%", maxWidth: "100%" }}
       animate={{
-        height: isChatbox ? "80vh" : "50vh",
+        // height: isChatbox ? "80vh" : "50vh",
         maxWidth: "100%",
         width: "100%",
       }}
@@ -215,15 +215,17 @@ const Chatbot: React.FC = () => {
           </div>
 
           <div className="flex mb-4 space-x-2">
-            {suggestedReplies.map((reply, index) => (
-              <button
-                key={index}
-                onClick={() => setInput(reply)}
-                className="p-2 bg-gray-200 text-gray-900 rounded-lg shadow-sm"
-              >
-                {reply}
-              </button>
-            ))}
+            {messages.length < 3 &&
+              address &&
+              suggestedReplies.map((reply, index) => (
+                <button
+                  key={index}
+                  onClick={() => setInput(reply)}
+                  className="p-2 bg-[#f9f9f9] text-gray-900 rounded-lg shadow-sm border border-solid border-[#e6e1e1]"
+                >
+                  {reply}
+                </button>
+              ))}
           </div>
 
           <div className="flex">
