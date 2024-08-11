@@ -13,6 +13,7 @@ import ProtocolDataSummary from "./ProtocolDataSummary";
 import RecommendationDataSummary from "./RecommendationDataSummary";
 import TransactionDetail from "./TransactionDetail";
 import UserDataSummaryTable from "./UserDataSummary";
+import Loader from "./primitives/Loader";
 
 interface MessageProps extends Partial<MessageResponse> {
   user: "user" | "bot";
@@ -123,8 +124,10 @@ const Chatbot: React.FC = () => {
         isChatbox ? "max-w-full" : ""
       } sm:h-full`}
       initial={{ height: "50vh", width: "100%", maxWidth: "100%" }}
-      animate={{ height: isChatbox ? "80vh" : "50vh", maxWidth: "100%" , width: "100%", 
-        
+      animate={{
+        height: isChatbox ? "80vh" : "50vh",
+        maxWidth: "100%",
+        width: "100%",
       }}
       transition={{ duration: 1.5 }}
     >
@@ -151,7 +154,8 @@ const Chatbot: React.FC = () => {
                 !address ? "bg-gray-300 cursor-not-allowed" : "bg-gray-600"
               }`}
             >
-             <span className="size-7"> Ask!</span>&nbsp; <BsSend className="ml-2 size-4 md:size-6" />
+              <span className="size-7"> Ask!</span>&nbsp;{" "}
+              <BsSend className="ml-2 size-4 md:size-6" />
             </button>
           </div>
 
@@ -185,12 +189,26 @@ const Chatbot: React.FC = () => {
                     : "bg-gray-300 text-left"
                 }`}
               >
-                {!["user data", "protocol data", "possible opportunities", "transaction metadata" ].includes(message.message?.toLowerCase()) && <Markdown>{message.message}</Markdown>}
-                {message?.recommendation && <RecommendationDataSummary data={message.recommendation}/>}
-                {message?.protocolAction && <TransactionDetail data={message.protocolAction}/>}
-                {message?.protocolData && <ProtocolDataSummary data={message.protocolData}/>}
-                {message?.userData && <UserDataSummaryTable data={message.userData}/>}
-              
+                {![
+                  "user data",
+                  "protocol data",
+                  "possible opportunities",
+                  "transaction metadata",
+                ].includes(message.message?.toLowerCase()) && (
+                  <Markdown>{message.message}</Markdown>
+                )}
+                {message?.recommendation && (
+                  <RecommendationDataSummary data={message.recommendation} />
+                )}
+                {message?.protocolAction && (
+                  <TransactionDetail data={message.protocolAction} />
+                )}
+                {message?.protocolData && (
+                  <ProtocolDataSummary data={message.protocolData} />
+                )}
+                {message?.userData && (
+                  <UserDataSummaryTable data={message.userData} />
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -225,8 +243,13 @@ const Chatbot: React.FC = () => {
             <button
               onClick={handleSend}
               className="p-2 bg-gray-600 text-white rounded-r flex items-center shadow-sm"
+              disabled={isBotLoading}
             >
-              <AiOutlineSend className="mx-6" />
+              {isBotLoading ? (
+                <Loader className="small" />
+              ) : (
+                <AiOutlineSend className="mx-6" />
+              )}
             </button>
           </div>
         </div>
