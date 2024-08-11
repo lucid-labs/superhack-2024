@@ -13,6 +13,7 @@ import ProtocolDataSummary from "./ProtocolDataSummary";
 import RecommendationDataSummary from "./RecommendationDataSummary";
 import TransactionDetail from "./TransactionDetail";
 import UserDataSummaryTable from "./UserDataSummary";
+import Loader from "./primitives/Loader";
 
 interface MessageProps extends Partial<MessageResponse> {
   user: "user" | "bot";
@@ -112,9 +113,9 @@ const Chatbot: React.FC = () => {
   // }, [messages])
 
   const suggestedReplies = [
-    "Tell me more.",
-    "Can you explain that?",
-    "What do you mean?",
+    "Give me the supported protocols",
+    "Where can I borrow USDC?",
+    "Show me my positions on Aave V3",
   ];
 
   return (
@@ -122,9 +123,11 @@ const Chatbot: React.FC = () => {
       className={`max-w-4xl mt-12 p-6 bg-gray-100 text-gray-900 rounded-lg shadow-md text-center ${
         isChatbox ? "max-w-full" : ""
       } sm:h-full`}
-      initial={{ height: "50vh", width: "100%", maxWidth: "100%" }}
-      animate={{ height: isChatbox ? "80vh" : "50vh", maxWidth: "100%" , width: "100%", 
-        
+      initial={{ height: "80vh", width: "100%", maxWidth: "100%" }}
+      animate={{
+        // height: isChatbox ? "80vh" : "50vh",
+        maxWidth: "100%",
+        width: "100%",
       }}
       transition={{ duration: 1.5 }}
     >
@@ -151,7 +154,8 @@ const Chatbot: React.FC = () => {
                 !address ? "bg-gray-300 cursor-not-allowed" : "bg-gray-600"
               }`}
             >
-             <span className="size-7"> Ask!</span>&nbsp; <BsSend className="ml-2 size-4 md:size-6" />
+              <span className="size-7"> Ask!</span>&nbsp;{" "}
+              <BsSend className="ml-2 size-4 md:size-6" />
             </button>
           </div>
 
@@ -185,27 +189,43 @@ const Chatbot: React.FC = () => {
                     : "bg-gray-300 text-left"
                 }`}
               >
-                {!["user data", "protocol data", "possible opportunities", "transaction metadata" ].includes(message.message?.toLowerCase()) && <Markdown>{message.message}</Markdown>}
-                {message?.recommendation && <RecommendationDataSummary data={message.recommendation}/>}
-                {message?.protocolAction && <TransactionDetail data={message.protocolAction}/>}
-                {message?.protocolData && <ProtocolDataSummary data={message.protocolData}/>}
-                {message?.userData && <UserDataSummaryTable data={message.userData}/>}
-              
+                {![
+                  "user data",
+                  "protocol data",
+                  "possible opportunities",
+                  "transaction metadata",
+                ].includes(message.message?.toLowerCase()) && (
+                  <Markdown>{message.message}</Markdown>
+                )}
+                {message?.recommendation && (
+                  <RecommendationDataSummary data={message.recommendation} />
+                )}
+                {message?.protocolAction && (
+                  <TransactionDetail data={message.protocolAction} />
+                )}
+                {message?.protocolData && (
+                  <ProtocolDataSummary data={message.protocolData} />
+                )}
+                {message?.userData && (
+                  <UserDataSummaryTable data={message.userData} />
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
           </div>
 
           <div className="flex mb-4 space-x-2">
-            {suggestedReplies.map((reply, index) => (
-              <button
-                key={index}
-                onClick={() => setInput(reply)}
-                className="p-2 bg-gray-200 text-gray-900 rounded-lg shadow-sm"
-              >
-                {reply}
-              </button>
-            ))}
+            {messages.length < 3 &&
+              address &&
+              suggestedReplies.map((reply, index) => (
+                <button
+                  key={index}
+                  onClick={() => setInput(reply)}
+                  className="p-2 bg-[#f9f9f9] text-gray-900 rounded-lg shadow-sm border border-solid border-[#e6e1e1]"
+                >
+                  {reply}
+                </button>
+              ))}
           </div>
 
           <div className="flex">
@@ -225,8 +245,13 @@ const Chatbot: React.FC = () => {
             <button
               onClick={handleSend}
               className="p-2 bg-gray-600 text-white rounded-r flex items-center shadow-sm"
+              disabled={isBotLoading}
             >
-              <AiOutlineSend className="mx-6" />
+              {isBotLoading ? (
+                <Loader className="small" />
+              ) : (
+                <AiOutlineSend className="mx-6" />
+              )}
             </button>
           </div>
         </div>

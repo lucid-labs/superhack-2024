@@ -133,7 +133,7 @@ export default function Home() {
     };
     return {
       ...defineChain(simChain),
-      name: "simulation",
+      name: "Simulation",
       chain: "simulation",
       slug: "simulation",
       shortName: "simulation",
