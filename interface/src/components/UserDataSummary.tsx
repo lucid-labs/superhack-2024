@@ -1,12 +1,13 @@
 import { UserData } from "@/types/message.types";
 import BigNumber from "bignumber.js";
+import { ethers } from "ethers";
 
 const formatNumber = (input: string, isHf: boolean = false) => {
   const num = new BigNumber(input);
   if (num.isNaN()) return input;
   if (isHf) {
     if (num.isGreaterThanOrEqualTo(1_000_000_000_000)) {
-      return "∞";
+      return num.toFixed(2);
     }
     if (num.isGreaterThanOrEqualTo(1_000_000_000)) {
       return (
@@ -47,13 +48,18 @@ const UserDataSummaryTable: React.FC<UserDataSummaryTableProps> = ({
           <strong>User Address:</strong> {data.userAddress}
         </p>
         <p className="text-gray-700">
-          <strong>Total Borrowed:</strong> {formatNumber(data.totalBorrowed)}
+          <strong>Total Borrowed:</strong>{" "}
+          {Number(data.totalBorrowed).toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+          })}
         </p>
         <p className="text-gray-700">
-          <strong>Total Supplied:</strong> {formatNumber(data.totalSupplied)}
-        </p>
-        <p className="text-gray-700">
-          <strong>Health Factor:</strong> {formatNumber(data.healthFactor, true)}
+          <strong>Total Supplied:</strong>{" "}
+          {Number(data.totalSupplied).toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+          })}
         </p>
       </div>
       <div className="overflow-x-auto">
@@ -61,41 +67,60 @@ const UserDataSummaryTable: React.FC<UserDataSummaryTableProps> = ({
           <thead>
             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
               <th className="py-3 px-6 text-left">Asset</th>
-              <th className="py-3 px-6 text-left">LTV</th>
-              <th className="py-3 px-6 text-left">Supply APY</th>
-              <th className="py-3 px-6 text-left">Borrow APY</th>
-              <th className="py-3 px-6 text-left">Net Supply APY</th>
-              <th className="py-3 px-6 text-left">Net Borrow APY</th>
-              <th className="py-3 px-6 text-left">Net APY</th>
+              <th className="py-3 px-6 text-right">Supplied</th>
+              <th className="py-3 px-6 text-right">Borrowed</th>
+              <th className="py-3 px-6 text-right">Supply APY</th>
+              <th className="py-3 px-6 text-right">Borrow APY</th>
+              <th className="py-3 px-6 text-right">LTV</th>
             </tr>
           </thead>
           <tbody className="text-gray-600 text-sm font-light">
-            {data.markets.map((market, index) => (
-              <tr
-                key={index}
-                className="border-b border-gray-200 hover:bg-gray-100"
-              >
-                <td className="py-3 px-6 text-left">{market.asset.symbol}</td>
-                <td className="py-3 px-6 text-left">
-                  {formatNumber(market.collateralFactor)}
-                </td>
-                <td className="py-3 px-6 text-left">
-                  {formatNumber(market.supplyApy)}
-                </td>
-                <td className="py-3 px-6 text-left">
-                  {formatNumber(market.borrowApy)}
-                </td>
-                <td className="py-3 px-6 text-left">
-                  {formatNumber(market.netSupplyApy.toString())}
-                </td>
-                <td className="py-3 px-6 text-left">
-                  {formatNumber(market.netBorrowApy.toString())}
-                </td>
-                <td className="py-3 px-6 text-left">
-                  {formatNumber(market.netApy.toString())}
-                </td>
-              </tr>
-            ))}
+            {data.markets
+              .sort(
+                (x, y) =>
+                  Number(y.amountSupplied) - Number(x.amountSupplied) ||
+                  Number(y.amountBorrowed) - Number(x.amountBorrowed)
+              )
+              .map((market, index) => (
+                <tr
+                  key={index}
+                  className="border-b border-gray-200 hover:bg-gray-100"
+                >
+                  <td className="py-3 px-6 text-left">{market.asset.symbol}</td>
+                  <td className="py-3 px-6 text-right">
+                    {new BigNumber(
+                      ethers.utils.formatUnits(
+                        market.amountSupplied,
+                        market.asset.decimals
+                      )
+                    )
+                      .decimalPlaces(7)
+                      .toString()}
+                  </td>
+                  <td className="py-3 px-7 text-right">
+                    {new BigNumber(
+                      ethers.utils.formatUnits(
+                        market.amountBorrowed,
+                        market.asset.decimals
+                      )
+                    )
+                      .decimalPlaces(7)
+                      .toString()}
+                  </td>
+
+                  <td className="py-3 px-6 text-right">
+                    {formatNumber(market.supplyApy)}
+                  </td>
+                  <td className="py-3 px-6 text-right">
+                    {formatNumber(market.borrowApy)}
+                  </td>
+                  <td className="py-3 px-6 text-right">
+                    {formatNumber(
+                      market.liquidationThreeshold || market.collateralFactor
+                    )}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
