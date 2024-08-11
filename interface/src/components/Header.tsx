@@ -39,8 +39,11 @@ const Header: React.FC = () => {
 
   return (
     <header>
-      <div className="absolute top-4 left-4 bg-gray-100 text-gray-900 rounded-full shadow-sm">
-        <Image src="/lucidity.png" height={60} width={60} alt="logo" />
+      <div className="absolute top-4 left-4 flex items-center gap-2">
+        <div className="bg-gray-100 text-gray-900 rounded-full shadow-sm max-w-auto">
+          <Image src="/lucidity.png" height={60} width={60} alt="logo" />
+        </div>
+        <h1 className="text-3xl font-bold">LuciBot</h1>
       </div>
       {address && (
         <div className="absolute top-4 right-56 bg-gray-100 text-gray-900 rounded-lg shadow-sm">
