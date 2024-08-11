@@ -25,6 +25,7 @@ const initUserSettings = {
 const UserContext = createContext<{
   userBalances: TokenBalance[];
   setUserBalances: (balances: TokenBalance[]) => void;
+  userBalanceFetching: boolean;
   fetchEoaBalancesFlag: boolean;
   setFetchEoaBalancesFlag: (flag: boolean) => void;
   userSettings: UserSettings;
@@ -35,6 +36,7 @@ const UserContext = createContext<{
 }>({
   userBalances: [],
   setUserBalances: () => {},
+  userBalanceFetching: false,
   fetchEoaBalancesFlag: false,
   setFetchEoaBalancesFlag: () => {},
   userSettings: {
@@ -53,6 +55,8 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<boolean>(false);
   const [userSettings, setUserSettingsState] =
     useState<UserSettings>(initUserSettings);
+  const [userBalanceFetching, setUserBalanceFetchingState] =
+    useState<boolean>(false);
 
   const setUserBalances = useCallback((balances: TokenBalance[]) => {
     setUserBalancesState(balances);
@@ -66,6 +70,7 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     const FORCE_REFRESH = false;
     const getBalances = async () => {
       try {
+        setUserBalanceFetchingState(true);
         const res = await axios.get<{
           address: string;
           tokenBalances: TokenBalance[];
@@ -80,9 +85,11 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
             return x;
           });
           setUserBalances(balances);
+          setUserBalanceFetchingState(false);
         }
       } catch (error) {
         console.log(error);
+        setUserBalanceFetchingState(false);
       }
     };
     if (address !== "" && chain?.chainId !== undefined) return getBalances();
@@ -114,6 +121,7 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         userBalances,
         setUserBalances,
+        userBalanceFetching,
         fetchEoaBalancesFlag,
         setFetchEoaBalancesFlag,
         userSettings,
