@@ -3,10 +3,10 @@
 import { useLucidity } from "@/context/LucidityContext";
 import { useWallet } from "@/context/ThirdwebContext";
 import { MessageResponse } from "@/types/message.types";
+import { ConnectWallet } from "@thirdweb-dev/react";
 import { motion } from "framer-motion";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineSend } from "react-icons/ai";
-import { BsSend } from "react-icons/bs";
 import { MdDone } from "react-icons/md";
 import Markdown from "react-markdown";
 import ProtocolDataSummary from "./ProtocolDataSummary";
@@ -19,8 +19,11 @@ interface MessageProps extends Partial<MessageResponse> {
   user: "user" | "bot";
 }
 const examplePrompts = [
-  "Find the Ethereum's borrow rate for last 7 days on Aave V2.",
-  "How much Liquidty does Compound have for ETH-USDC Pair ?",
+  "Find the Ethereum's borrow rate on Aave V2.",
+  "Can you fetch compound v3 usdc protocol details on ethereum mainnet ?",
+  "Can you get my aave v3 positions on base network?",
+  "I would like to supply 0.01 eth on aave v3 on simulation network",
+  "I want to supply USDC on base what do you recommend ?"
 ];
 const Chatbot: React.FC = () => {
   const [input, setInput] = useState<string>("");
@@ -29,6 +32,8 @@ const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const { address, chain, sendTransaction } = useWallet();
   const { sendMessage } = useLucidity();
+  const { tokens } = useLucidity();
+
   useEffect(() => {
     if (!address) {
       setIsChatbox(false);
@@ -71,7 +76,22 @@ const Chatbot: React.FC = () => {
       setMessages(msgs);
     }
   };
-
+  const twTokens = useMemo(() => {
+    const tokenList: Record<string, any[]> = {};
+    for (const [key, value] of Object.entries(tokens)) {
+      if (key !== "name") {
+        // TODO: ipfs list contains 'name' key  => do not store in state
+        tokenList[key] = value.map((token) => {
+          return { ...token, icon: token.logo };
+        });
+        // TODO: hide native token details (currently manually filtering eth)
+        tokenList[key] = tokenList[key].filter(
+          (token) => token.symbol !== "ETH"
+        );
+      }
+    }
+    return tokenList;
+  }, [tokens]);
   useEffect(() => {
     if (messages.length === 0 && address) {
       const msg = `You are connected to ${chain?.name} with ${address}`;
@@ -114,7 +134,7 @@ const Chatbot: React.FC = () => {
 
   const suggestedReplies = [
     "Give me the supported protocols",
-    "Where can I borrow USDC?",
+    "I want to borrow USDC on Ethereum Mainnet. Can you help me discover the opportunities?",
     "Show me my positions on Aave V3",
   ];
 
@@ -133,8 +153,13 @@ const Chatbot: React.FC = () => {
     >
       {!isChatbox && (
         <div className="px:[5%] md:px-[20%] py-[5%]">
-          <h1 className="text-3xl font-bold mb-2">LuciBot AI</h1>
-          <p className="text-xl mb-6">Ask De-Fi related questions.</p>
+          <h1 className="text-3xl font-bold mb-2">Welcome to LuciBot AI</h1>
+          <p className="text-xl">
+            You are just one step away from using our De-Fi chatbot
+          </p>
+          <p className="text-md mb-6 pt-0 mt-0 text-yellow-600">
+            please connect your wallet first
+          </p>
 
           <div className="flex justify-center items-center mb-6">
             <input
@@ -144,19 +169,12 @@ const Chatbot: React.FC = () => {
               placeholder="What do you want to know?"
               className="flex-1 p-4 border rounded-l-lg text-lg text-gray-900"
             />
-            <button
-              disabled={!address}
-              onClick={() => {
-                handleSend();
-                setIsChatbox(true);
-              }}
-              className={`p-4  text-white text-lg rounded-r-lg flex items-center ${
-                !address ? "bg-gray-300 cursor-not-allowed" : "bg-gray-600"
-              }`}
-            >
-              <span className="size-7"> Ask!</span>&nbsp;{" "}
-              <BsSend className="ml-2 size-4 md:size-6" />
-            </button>
+            <ConnectWallet
+              style={{ height: "61px", borderRadius: "0px 8px 8px 0px" }}
+              theme={"light"}
+              supportedTokens={twTokens}
+              btnTitle="Connect & Ask!"
+            />
           </div>
 
           <div>
@@ -221,7 +239,7 @@ const Chatbot: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => setInput(reply)}
-                  className="p-2 bg-[#f9f9f9] text-gray-900 rounded-lg shadow-sm border border-solid border-[#e6e1e1]"
+                  className="p-2 bg-[#f9f9f9] text-gray-900 rounded-lg shadow-sm border border-solid border-[#e6e1e1] text-left"
                 >
                   {reply}
                 </button>

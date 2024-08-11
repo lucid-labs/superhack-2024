@@ -4,9 +4,9 @@ import {
   useAddress,
   useChain,
   useDisconnect,
-  useSigner
+  useSigner,
 } from "@thirdweb-dev/react";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 // Create a context to manage wallet connection state
@@ -24,24 +24,34 @@ const WalletContext = createContext<{
 const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const [currentAddress, setCurrentAddress] = useState<string | undefined>(
+    undefined
+  );
   const address = useAddress();
   const chain = useChain();
   const disconnect = useDisconnect();
   const signer = useSigner();
+  useEffect(() => {
+    if (currentAddress != undefined) {
+      window.location.reload();
+    }
+    setCurrentAddress(address);
+  }, [address]);
 
   const sendTransaction = async (tx: any) => {
     if (!signer) return;
 
     try {
-      console.log("Sending transaction", tx)
+      console.log("Sending transaction", tx);
       const txResponse = await signer.sendTransaction(tx);
       await txResponse.wait();
-      toast.success(`Transaction successful! ${txResponse.hash}`)
+      toast.success(`Transaction successful! ${txResponse.hash}`);
       return txResponse.hash;
     } catch (error) {
-      toast.error(`Transaction failed! Try again`)
+      toast.error(`Transaction failed! Try again`);
     }
   };
+
   return (
     <WalletContext.Provider
       value={{ address, disconnect, chain, sendTransaction }}
